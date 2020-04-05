@@ -1,4 +1,4 @@
-CXX = g++-9
+CXX = g++
 CXXFLAGS = -std=c++11 -O3 -fopenmp
 
 # turning off auto-vectorization since this can make hand-vectorized code slower
