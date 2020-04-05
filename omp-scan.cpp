@@ -41,19 +41,20 @@ void scan_omp(long* prefix_sum, const long* A, long n) {
       prefix_sum[i] = prefix_sum[i-1] + A[i-1];
       correction[thread_id]+= A[i-1];
     }
+  }
 
-    // wait for other thread
-    #pragma omp barrier
+  // accumulate the correction array
+  for(long i = 1; i < thread_num; i++){
+    correction[i] += correction[i-1];
+  }
 
-    // correct the prefix_sum
-    #pragma omp for schedule(static,chunk_size+1)
-    for(long i = 1; i < n; i++){
-      if(thread_id!=0)
-        for(int j = 0; j < thread_id; j++){
-          prefix_sum[i] += correction[j];
-        }
-    }
-  } 
+  // correct the prefix_sum
+  #pragma omp parallel for schedule(static,chunk_size+1) num_threads(thread_num)
+  for(long i = 1; i < n; i++){
+    int thread_id = omp_get_thread_num();
+    if(thread_id!=0)
+      prefix_sum[i] += correction[thread_id-1];
+  }
 }
 
 int main() {
